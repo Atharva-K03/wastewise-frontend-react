@@ -1,13 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { usePickup } from '../contexts/PickupContext';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, LogOut, Moon, Sun, LayoutDashboard, Users, Truck, MapPin, CalendarDays, Route, ClipboardList, Leaf } from 'lucide-react';
+import { Menu, LogOut, Moon, Sun, LayoutDashboard, Users, Truck, MapPin, CalendarDays, Route, ClipboardList, Leaf, BarChart, Weight, CalendarCheck, CalendarDays as CalendarDaysIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Bar } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { format } from 'date-fns';
 
 import WorkerManagementDashboard from './WorkerManagementDashboard';
 import CreateWorker from './CreateWorker';
@@ -18,20 +27,39 @@ import CreateZone from './CreateZone';
 import UpdateZone from './UpdateZone';
 import DeleteZone from './DeleteZone';
 
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+
 const AdminDashboard = ({ onNavigate }) => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { logs, zones, vehicles, getWeeklySummary, getMonthlySummary, getZoneDailyCollections, getVehicleDailyWeight } = usePickup();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isDesktopSidebarCollapsed, setIsDesktopSidebarCollapsed] = useState(false);
   const [currentAdminView, setCurrentAdminView] = useState('adminDashboard'); // 'adminDashboard', 'workerManagement', 'createWorker', 'updateWorker', 'zoneManagement', 'createZone', 'updateZone', 'deleteZone'
   const [zoneToUpdateId, setZoneToUpdateId] = useState(null); // For updating a specific zone from table
   const [zoneToDeleteId, setZoneToDeleteId] = useState(null); // For deleting a specific zone from table
 
+  // Log Report States
+  const [logType, setLogType] = useState('zone'); // 'zone' or 'vehicle'
+  const [selectedId, setSelectedId] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [zoneChartData, setZoneChartData] = useState(null);
+  const [vehicleChartData, setVehicleChartData] = useState(null);
+
   const handleNavigation = (module) => {
     setCurrentAdminView(module);
     setIsMobileSidebarOpen(false); // Close mobile sidebar after navigation
     setZoneToUpdateId(null); // Clear any specific zone ID for update
     setZoneToDeleteId(null); // Clear any specific zone ID for delete
+    // Reset log report states when navigating away from adminDashboard
+    if (module !== 'adminDashboard') {
+      setSelectedId('');
+      setStartDate('');
+      setEndDate('');
+      setZoneChartData(null);
+      setVehicleChartData(null);
+    }
   };
 
   // Worker Management Handlers
@@ -65,6 +93,55 @@ const AdminDashboard = ({ onNavigate }) => {
   const handleZoneSuccess = () => {
     setCurrentAdminView('zoneManagement');
   };
+
+  // Log Report Handlers
+  const handleGenerateReport = () => {
+    if (!selectedId || !startDate || !endDate) {
+      alert('Please select an ID, start date, and end date.');
+      return;
+    }
+
+    if (logType === 'zone') {
+      const data = getZoneDailyCollections(selectedId, startDate, endDate);
+      setZoneChartData({
+        labels: data.map(d => format(new Date(d.date), 'MMM dd')),
+        datasets: [
+          {
+            label: 'Total Collections',
+            data: data.map(d => d.collections),
+            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+          },
+          {
+            label: 'Total Weight Collected (kg)',
+            data: data.map(d => d.weight),
+            backgroundColor: 'rgba(153, 102, 255, 0.6)',
+          },
+        ],
+      });
+      setVehicleChartData(null); // Clear vehicle chart data
+    } else if (logType === 'vehicle') {
+      const data = getVehicleDailyWeight(selectedId, startDate, endDate);
+      setVehicleChartData({
+        labels: data.map(d => format(new Date(d.date), 'MMM dd')),
+        datasets: [
+          {
+            label: 'Total Weight Collected (kg)',
+            data: data.map(d => d.weight),
+            backgroundColor: 'rgba(255, 159, 64, 0.6)',
+          },
+        ],
+      });
+      setZoneChartData(null); // Clear zone chart data
+    }
+  };
+
+  const weeklySummary = useMemo(() => getWeeklySummary(), [logs, getWeeklySummary]);
+  const monthlySummary = useMemo(() => getMonthlySummary(), [logs, getMonthlySummary]);
+
+  const recentLogs = useMemo(() => {
+    // Sort logs by collectionStartTime in descending order and take the latest 10
+    return [...logs].sort((a, b) => new Date(b.collectionStartTime) - new Date(a.collectionStartTime)).slice(0, 10);
+  }, [logs]);
 
   let content;
   switch (currentAdminView) {
@@ -107,10 +184,186 @@ const AdminDashboard = ({ onNavigate }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center"
+          className="p-4"
         >
-          <h2 className="text-4xl font-bold text-green-600 dark:text-green-400 mb-4">Hello, Admin!</h2>
-          <p className="text-xl text-muted-foreground">Your dashboard is coming soon.</p>
+          <h1 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">Admin Dashboard</h1>
+
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <Card className="transition-all duration-200 hover:scale-105 hover:shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Weight Collected Weekly</p>
+                    <p className="text-2xl font-bold">{weeklySummary.totalWeight} kg</p>
+                  </div>
+                  <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
+                    <Weight className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="transition-all duration-200 hover:scale-105 hover:shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Collections Weekly</p>
+                    <p className="text-2xl font-bold">{weeklySummary.totalCollections}</p>
+                  </div>
+                  <div className="p-3 rounded-full bg-green-100 dark:bg-green-900">
+                    <CalendarCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="transition-all duration-200 hover:scale-105 hover:shadow-lg">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Collections Monthly</p>
+                    <p className="text-2xl font-bold">{monthlySummary.totalCollections}</p>
+                  </div>
+                  <div className="p-3 rounded-full bg-purple-100 dark:bg-purple-900">
+                    <CalendarDaysIcon className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Log Report Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Log Report Form */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <BarChart className="h-5 w-5" />
+                  <span>Generate Log Report</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="logType">Report Type</Label>
+                    <Select value={logType} onValueChange={setLogType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select report type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="zone">Zone Logs</SelectItem>
+                        <SelectItem value="vehicle">Vehicle Logs</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="selectId">{logType === 'zone' ? 'Zone ID' : 'Vehicle ID'}</Label>
+                    <Select value={selectedId} onValueChange={setSelectedId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={`Select a ${logType === 'zone' ? 'Zone' : 'Vehicle'} ID`} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(logType === 'zone' ? zones : vehicles).map(item => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.id} - {item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="startDate">Start Date</Label>
+                    <Input type="date" id="startDate" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label htmlFor="endDate">End Date</Label>
+                    <Input type="date" id="endDate" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                  </div>
+                  <Button onClick={handleGenerateReport} className="w-full">
+                    Generate Report
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Log Report Graphs */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <BarChart className="h-5 w-5" />
+                  <span>Report Visualization</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {zoneChartData && logType === 'zone' && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Zone {selectedId} Daily Collections & Weight</h3>
+                    <Bar data={zoneChartData} options={{ responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Daily Collections and Weight' } } }} />
+                  </div>
+                )}
+                {vehicleChartData && logType === 'vehicle' && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Vehicle {selectedId} Daily Weight Collected</h3>
+                    <Bar data={vehicleChartData} options={{ responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Daily Weight Collected' } } }} />
+                  </div>
+                )}
+                {!zoneChartData && !vehicleChartData && (
+                  <div className="text-center text-muted-foreground py-10">
+                    Select criteria and generate a report to see the graph.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recent Logs Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <ClipboardList className="h-5 w-5" />
+                <span>Recent Collection Logs</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Zone ID</TableHead>
+                      <TableHead>Vehicle ID</TableHead>
+                      <TableHead>Collection Start</TableHead>
+                      <TableHead>Collection End</TableHead>
+                      <TableHead>Weight (kg)</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recentLogs.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                          No recent logs available.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      recentLogs.map((log, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{log.zoneId}</TableCell>
+                          <TableCell>{log.vehicleId}</TableCell>
+                          <TableCell>{format(new Date(log.collectionStartTime), 'MMM dd, yyyy HH:mm')}</TableCell>
+                          <TableCell>{log.collectionEndTime ? format(new Date(log.collectionEndTime), 'MMM dd, yyyy HH:mm') : 'In Progress'}</TableCell>
+                          <TableCell>{log.weightCollected !== null ? `${log.weightCollected} kg` : 'N/A'}</TableCell>
+                          <TableCell>
+                            <Badge variant={log.status === 'Completed' ? 'success' : 'secondary'}>
+                              {log.status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
       );
       break;
@@ -235,3 +488,5 @@ const AdminDashboard = ({ onNavigate }) => {
 };
 
 export default AdminDashboard;
+
+

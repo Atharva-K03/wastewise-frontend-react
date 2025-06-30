@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { format, isWithinInterval, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 
 const PickupContext = createContext();
 
@@ -19,6 +20,7 @@ export const PickupProvider = ({ children }) => {
   const [nextZoneId, setNextZoneId] = useState(1); // Start from Z001
   const [routes, setRoutes] = useState([]); // Manage routes state here
   const [nextRouteId, setNextRouteId] = useState(1); // Start from R001
+  const [logs, setLogs] = useState([]); // Manage logs state here
 
   // Dummy data for vehicles (already present)
   const vehicles = [
@@ -93,6 +95,23 @@ export const PickupProvider = ({ children }) => {
     ];
     setRoutes(initialRoutes);
     setNextRouteId(initialRoutes.length + 1);
+
+    // Load initial dummy data for logs
+    const initialLogs = [
+      { zoneId: 'Z001', vehicleId: 'V001', collectionStartTime: '2025-06-25T10:00:00Z', collectionEndTime: '2025-06-25T10:30:00Z', weightCollected: 150, status: 'Completed' },
+      { zoneId: 'Z001', vehicleId: 'V002', collectionStartTime: '2025-06-25T11:00:00Z', collectionEndTime: '2025-06-25T11:45:00Z', weightCollected: 200, status: 'Completed' },
+      { zoneId: 'Z002', vehicleId: 'V001', collectionStartTime: '2025-06-26T09:00:00Z', collectionEndTime: '2025-06-26T09:50:00Z', weightCollected: 180, status: 'Completed' },
+      { zoneId: 'Z003', vehicleId: 'V003', collectionStartTime: '2025-06-26T14:00:00Z', collectionEndTime: '2025-06-26T14:30:00Z', weightCollected: 120, status: 'Completed' },
+      { zoneId: 'Z001', vehicleId: 'V001', collectionStartTime: '2025-06-27T10:00:00Z', collectionEndTime: null, weightCollected: null, status: 'InProgress' },
+      { zoneId: 'Z002', vehicleId: 'V002', collectionStartTime: '2025-06-27T11:00:00Z', collectionEndTime: '2025-06-27T11:30:00Z', weightCollected: 160, status: 'Completed' },
+      { zoneId: 'Z001', vehicleId: 'V001', collectionStartTime: '2025-06-28T10:00:00Z', collectionEndTime: '2025-06-28T10:30:00Z', weightCollected: 170, status: 'Completed' },
+      { zoneId: 'Z001', vehicleId: 'V002', collectionStartTime: '2025-06-28T11:00:00Z', collectionEndTime: '2025-06-28T11:45:00Z', weightCollected: 210, status: 'Completed' },
+      { zoneId: 'Z002', vehicleId: 'V001', collectionStartTime: '2025-06-29T09:00:00Z', collectionEndTime: '2025-06-29T09:50:00Z', weightCollected: 190, status: 'Completed' },
+      { zoneId: 'Z003', vehicleId: 'V003', collectionStartTime: '2025-06-29T14:00:00Z', collectionEndTime: '2025-06-29T14:30:00Z', weightCollected: 130, status: 'Completed' },
+      { zoneId: 'Z001', vehicleId: 'V001', collectionStartTime: '2025-06-30T10:00:00Z', collectionEndTime: null, weightCollected: null, status: 'InProgress' },
+      { zoneId: 'Z002', vehicleId: 'V002', collectionStartTime: '2025-06-30T11:00:00Z', collectionEndTime: '2025-06-30T11:30:00Z', weightCollected: 175, status: 'Completed' },
+    ];
+    setLogs(initialLogs);
 
   }, []);
 
@@ -214,12 +233,119 @@ export const PickupProvider = ({ children }) => {
     return routes.filter(route => route.zoneId === zoneId);
   };
 
+  const getLogs = (type, id, startDate, endDate) => {
+    let filteredLogs = logs;
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+
+    if (type === 'zone' && id) {
+      filteredLogs = filteredLogs.filter(log => log.zoneId === id);
+    } else if (type === 'vehicle' && id) {
+      filteredLogs = filteredLogs.filter(log => log.vehicleId === id);
+    }
+
+    if (start) {
+      filteredLogs = filteredLogs.filter(log => parseISO(log.collectionStartTime) >= start);
+    }
+    if (end) {
+      filteredLogs = filteredLogs.filter(log => parseISO(log.collectionStartTime) <= end);
+    }
+    return filteredLogs;
+  };
+
+  const calculateTotalWeightCollected = (filteredLogs) => {
+    return filteredLogs.reduce((sum, log) => sum + (log.weightCollected || 0), 0);
+  };
+
+  const calculateTotalCollections = (filteredLogs) => {
+    return filteredLogs.filter(log => log.status === 'Completed').length;
+  };
+
+  const getWeeklySummary = () => {
+    const now = new Date();
+    const startOfCurrentWeek = startOfWeek(now, { weekStartsOn: 1 }); // Monday as start of week
+    const endOfCurrentWeek = endOfWeek(now, { weekStartsOn: 1 });
+
+    const weeklyLogs = logs.filter(log => 
+      log.status === 'Completed' && 
+      isWithinInterval(parseISO(log.collectionStartTime), { start: startOfCurrentWeek, end: endOfCurrentWeek })
+    );
+
+    const totalWeight = calculateTotalWeightCollected(weeklyLogs);
+    const totalCollections = calculateTotalCollections(weeklyLogs);
+
+    return { totalWeight, totalCollections };
+  };
+
+  const getMonthlySummary = () => {
+    const now = new Date();
+    const startOfCurrentMonth = startOfMonth(now);
+    const endOfCurrentMonth = endOfMonth(now);
+
+    const monthlyLogs = logs.filter(log => 
+      log.status === 'Completed' && 
+      isWithinInterval(parseISO(log.collectionStartTime), { start: startOfCurrentMonth, end: endOfCurrentMonth })
+    );
+
+    const totalCollections = calculateTotalCollections(monthlyLogs);
+
+    return { totalCollections };
+  };
+
+  const getZoneDailyCollections = (zoneId, startDate, endDate) => {
+    const filtered = getLogs('zone', zoneId, startDate, endDate);
+    const dailyData = {};
+
+    if (startDate && endDate) {
+      const days = eachDayOfInterval({ start: parseISO(startDate), end: parseISO(endDate) });
+      days.forEach(day => {
+        const dateStr = format(day, 'yyyy-MM-dd');
+        dailyData[dateStr] = { collections: 0, weight: 0 };
+      });
+    }
+
+    filtered.forEach(log => {
+      const dateStr = format(parseISO(log.collectionStartTime), 'yyyy-MM-dd');
+      if (!dailyData[dateStr]) {
+        dailyData[dateStr] = { collections: 0, weight: 0 };
+      }
+      dailyData[dateStr].collections += 1;
+      dailyData[dateStr].weight += (log.weightCollected || 0);
+    });
+
+    return Object.keys(dailyData).sort().map(date => ({ date, ...dailyData[date] }));
+  };
+
+  const getVehicleDailyWeight = (vehicleId, startDate, endDate) => {
+    const filtered = getLogs('vehicle', vehicleId, startDate, endDate);
+    const dailyData = {};
+
+    if (startDate && endDate) {
+      const days = eachDayOfInterval({ start: parseISO(startDate), end: parseISO(endDate) });
+      days.forEach(day => {
+        const dateStr = format(day, 'yyyy-MM-dd');
+        dailyData[dateStr] = { weight: 0 };
+      });
+    }
+
+    filtered.forEach(log => {
+      const dateStr = format(parseISO(log.collectionStartTime), 'yyyy-MM-dd');
+      if (!dailyData[dateStr]) {
+        dailyData[dateStr] = { weight: 0 };
+      }
+      dailyData[dateStr].weight += (log.weightCollected || 0);
+    });
+
+    return Object.keys(dailyData).sort().map(date => ({ date, ...dailyData[date] }));
+  };
+
   const value = {
     pickups,
     zones,
     vehicles,
     workers,
     routes,
+    logs,
     createPickup,
     deletePickup,
     updatePickup,
@@ -236,6 +362,11 @@ export const PickupProvider = ({ children }) => {
     getVehicleName,
     getWorkerName,
     getRoutesByZoneId,
+    getLogs,
+    getWeeklySummary,
+    getMonthlySummary,
+    getZoneDailyCollections,
+    getVehicleDailyWeight,
   };
 
   return (
@@ -244,3 +375,5 @@ export const PickupProvider = ({ children }) => {
     </PickupContext.Provider>
   );
 };
+
+
