@@ -49,7 +49,7 @@ const SignIn = ({ onSignIn }) => {
       <Button
         variant="outline"
         size="icon"
-        className="fixed top-4 right-4 z-50"
+        className="fixed top-4 right-4 z-50 rounded-full"
         onClick={toggleTheme}
       >
         {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}

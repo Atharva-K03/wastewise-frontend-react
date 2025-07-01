@@ -474,8 +474,7 @@ const AdminDashboard = ({ onNavigate }) => {
                 variant="outline"
                 size="icon"
                 onClick={toggleTheme}
-                className="transition-all duration-200 hover:scale-105 bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 rounded-full h-8 w-8"
-              >
+                className="transition-all duration-200 hover:scale-105 bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 rounded-full h-8 w-8">
                 {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
               </Button>
 

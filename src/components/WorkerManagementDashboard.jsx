@@ -56,34 +56,35 @@ const WorkerManagementDashboard = ({ onCreateWorker, onUpdateWorker }) => {
   ];
 
   return (
-    <div className="p-8">
+    <div className="p-2 sm:p-4 lg:p-6 max-w-full overflow-hidden">
       <motion.h2
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="text-3xl font-bold text-gray-900 dark:text-white mb-8"
+        className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6 lg:mb-8"
       >
         Worker Management
       </motion.h2>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6 lg:mb-8">
         {stats.map((stat, index) => (
           <motion.div
             key={stat.title}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1, duration: 0.6 }}
+            className="w-full"
           >
-            <Card className="transition-all duration-200 hover:scale-105 hover:shadow-lg">
-              <CardContent className="p-6">
+            <Card className="transition-all duration-200 hover:scale-105 hover:shadow-lg w-full">
+              <CardContent className="p-3 sm:p-4 lg:p-6">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                    <p className="text-2xl font-bold">{stat.value}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{stat.title}</p>
+                    <p className="text-lg sm:text-xl lg:text-2xl font-bold">{stat.value}</p>
                   </div>
-                  <div className={`p-3 rounded-full ${stat.bgColor}`}>
-                    <stat.icon className={`h-6 w-6 ${stat.color}`} />
+                  <div className={`p-2 sm:p-3 rounded-full ${stat.bgColor} flex-shrink-0 ml-2`}>
+                    <stat.icon className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 ${stat.color}`} />
                   </div>
                 </div>
               </CardContent>
@@ -97,20 +98,20 @@ const WorkerManagementDashboard = ({ onCreateWorker, onUpdateWorker }) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.6 }}
-        className="flex flex-col sm:flex-row gap-4 mb-8"
+        className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8"
       >
         <Button
           onClick={onCreateWorker}
-          className="flex-1 h-12 text-lg text-white transition-all duration-200 hover:scale-105 bg-green-600 hover:bg-green-700"
+          className="w-full sm:flex-1 h-10 sm:h-12 text-sm sm:text-base lg:text-lg text-white transition-all duration-200 hover:scale-105 bg-green-600 hover:bg-green-700"
         >
-          <Plus className="h-5 w-5 mr-2" />
+          <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
           Create Worker
         </Button>
         <Button
           onClick={onUpdateWorker}
-          className="flex-1 h-12 text-lg text-white dark:text-white transition-all duration-200 hover:scale-105 bg-yellow-600 hover:bg-yellow-600"
+          className="w-full sm:flex-1 h-10 sm:h-12 text-sm sm:text-base lg:text-lg text-white dark:text-white transition-all duration-200 hover:scale-105 bg-yellow-600 hover:bg-yellow-700"
         >
-          <Edit className="h-5 w-5 mr-2" />
+          <Edit className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
           Update Worker
         </Button>
       </motion.div>
@@ -120,48 +121,92 @@ const WorkerManagementDashboard = ({ onCreateWorker, onUpdateWorker }) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6, duration: 0.6 }}
+        className="w-full"
       >
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Users className="h-5 w-5" />
+        <Card className="w-full">
+          <CardHeader className="p-3 sm:p-4 lg:p-6">
+            <CardTitle className="flex items-center space-x-2 text-sm sm:text-base lg:text-lg">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5" />
               <span>All Workers</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
+          <CardContent className="p-0 sm:p-3 lg:p-6 sm:pt-0 lg:pt-0">
+            <div className="overflow-x-auto w-full">
+              <Table className="min-w-full">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Worker ID</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Phone No.</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role ID</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4">Worker ID</TableHead>
+                    <TableHead className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4">Name</TableHead>
+                    <TableHead className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4 hidden sm:table-cell">Phone No.</TableHead>
+                    <TableHead className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4 hidden md:table-cell">Email</TableHead>
+                    <TableHead className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4 hidden lg:table-cell">Role ID</TableHead>
+                    <TableHead className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4">Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {workers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-6 sm:py-8 text-muted-foreground text-xs sm:text-sm">
                         No workers found. Create a new worker to get started!
                       </TableCell>
                     </TableRow>
                   ) : (
                     workers.map((worker) => (
                       <TableRow key={worker.id} className="hover:bg-muted/50">
-                        <TableCell className="font-medium">{worker.id}</TableCell>
-                        <TableCell>{worker.name}</TableCell>
-                        <TableCell>{worker.phone}</TableCell>
-                        <TableCell>{worker.email}</TableCell>
-                        <TableCell>{worker.roleId}</TableCell>
-                        <TableCell>{worker.status}</TableCell>
+                        <TableCell className="font-medium text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">{worker.id}</TableCell>
+                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">{worker.name}</TableCell>
+                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap hidden sm:table-cell">{worker.phone}</TableCell>
+                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap hidden md:table-cell">{worker.email}</TableCell>
+                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap hidden lg:table-cell">{worker.roleId}</TableCell>
+                        <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            worker.status === 'available' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                            worker.status === 'occupied' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+                            'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+                          }`}>
+                            {worker.status}
+                          </span>
+                        </TableCell>
                       </TableRow>
                     ))
                   )}
                 </TableBody>
               </Table>
+            </div>
+            
+            {/* Mobile-friendly worker cards for very small screens */}
+            <div className="block sm:hidden mt-4">
+              {workers.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-medium text-muted-foreground px-3">Worker Details</h3>
+                  {workers.map((worker) => (
+                    <Card key={`mobile-${worker.id}`} className="mx-3">
+                      <CardContent className="p-3">
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <p className="font-medium text-sm">{worker.name}</p>
+                              <p className="text-xs text-muted-foreground">ID: {worker.id}</p>
+                            </div>
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              worker.status === 'available' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                              worker.status === 'occupied' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+                              'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+                            }`}>
+                              {worker.status}
+                            </span>
+                          </div>
+                          <div className="text-xs text-muted-foreground space-y-1">
+                            <p>📞 {worker.phone}</p>
+                            <p>✉️ {worker.email}</p>
+                            <p>👤 Role: {worker.roleId}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

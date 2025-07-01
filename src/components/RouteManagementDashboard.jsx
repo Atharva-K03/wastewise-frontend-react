@@ -48,101 +48,169 @@ const RouteManagementDashboard = ({ onCreateRoute, onUpdateRoute, onDeleteRoute 
   ];
 
   return (
-    <div className="p-4">
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
-      className="space-y-6"
-    >
-      <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Route Management</h1>
+    <div className="p-2 sm:p-4 lg:p-6 max-w-full overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="space-y-4 sm:space-y-6"
+      >
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white">Route Management</h1>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {stats.map((stat, index) => (
-          <Card key={index} className="transition-all duration-200 hover:scale-105 hover:shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                  <p className="text-2xl font-bold">{stat.value}</p>
-                </div>
-                <div className={`p-3 rounded-full ${stat.bgColor}`}>
-                  <stat.icon className={`h-6 w-6 ${stat.color}`} />
-                </div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+          {stats.map((stat, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1, duration: 0.6 }}
+              className="w-full"
+            >
+              <Card className="transition-all duration-200 hover:scale-105 hover:shadow-lg w-full">
+                <CardContent className="p-3 sm:p-4 lg:p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">{stat.title}</p>
+                      <p className="text-lg sm:text-xl lg:text-2xl font-bold">{stat.value}</p>
+                    </div>
+                    <div className={`p-2 sm:p-3 rounded-full ${stat.bgColor} flex-shrink-0 ml-2`}>
+                      <stat.icon className={`h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 ${stat.color}`} />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Action Buttons - Centered */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.6 }}
+          className="flex justify-center w-full"
+        >
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full max-w-4xl">
+            <Button 
+              onClick={onCreateRoute} 
+              className="w-full sm:flex-1 h-10 sm:h-12 text-sm sm:text-base lg:text-lg text-white transition-all duration-200 hover:scale-105 bg-green-600 hover:bg-green-700"
+            >
+              <Plus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> Create Route
+            </Button>
+            <Button 
+              onClick={() => onUpdateRoute()} 
+              className="w-full sm:flex-1 h-10 sm:h-12 text-sm sm:text-base lg:text-lg text-white dark:text-white transition-all duration-200 hover:scale-105 bg-yellow-500 hover:bg-yellow-600"
+            >
+              <Edit className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> Update Route
+            </Button>
+            <Button 
+              onClick={() => onDeleteRoute()} 
+              className="w-full sm:flex-1 h-10 sm:h-12 text-sm sm:text-base lg:text-lg text-white transition-all duration-200 hover:scale-105 bg-red-500 hover:bg-red-700"
+            >
+              <Trash2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> Delete Route
+            </Button>
+          </div>
+        </motion.div>
+
+        {/* Routes Table */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
+          className="w-full"
+        >
+          <Card className="w-full">
+            <CardHeader className="p-3 sm:p-4 lg:p-6">
+              <CardTitle className="text-sm sm:text-base lg:text-lg">All Routes</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 sm:p-3 lg:p-6 sm:pt-0 lg:pt-0">
+              <div className="overflow-x-auto w-full">
+                <Table className="min-w-full">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4">Route ID</TableHead>
+                      <TableHead className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4 hidden sm:table-cell">Zone ID</TableHead>
+                      <TableHead className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4">Route Name</TableHead>
+                      <TableHead className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4 hidden md:table-cell">Path Details</TableHead>
+                      <TableHead className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4 hidden lg:table-cell">Avg. Est. Time</TableHead>
+                      <TableHead className="text-xs sm:text-sm whitespace-nowrap px-2 sm:px-4">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {routes.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-6 sm:py-8 text-muted-foreground text-xs sm:text-sm">
+                          No routes available.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      routes.map((route) => (
+                        <TableRow key={route.id} className="hover:bg-muted/50">
+                          <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap font-medium">{route.id}</TableCell>
+                          <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap hidden sm:table-cell">{route.zoneId}</TableCell>
+                          <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">{route.name}</TableCell>
+                          <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap hidden md:table-cell max-w-xs truncate" title={route.pathDetails}>{route.pathDetails}</TableCell>
+                          <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap hidden lg:table-cell">{route.estimatedTime}</TableCell>
+                          <TableCell className="px-2 sm:px-4">
+                            <div className="flex space-x-1 sm:space-x-2">
+                              <Button variant="outline" size="sm" onClick={() => onUpdateRoute(route.id)} className="h-7 w-7 sm:h-8 sm:w-8 p-0">
+                                <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                              </Button>
+                              <Button variant="outline" size="sm" onClick={() => onDeleteRoute(route.id)} className="h-7 w-7 sm:h-8 sm:w-8 p-0">
+                                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              
+              {/* Mobile-friendly route cards for very small screens */}
+              <div className="block sm:hidden mt-4">
+                {routes.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-muted-foreground px-3">Route Details</h3>
+                    {routes.map((route) => (
+                      <Card key={`mobile-${route.id}`} className="mx-3">
+                        <CardContent className="p-3">
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-start">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm truncate">{route.name}</p>
+                                <p className="text-xs text-muted-foreground">ID: {route.id}</p>
+                              </div>
+                              <div className="flex space-x-1 ml-2">
+                                <Button variant="outline" size="sm" onClick={() => onUpdateRoute(route.id)} className="h-7 w-7 p-0">
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => onDeleteRoute(route.id)} className="h-7 w-7 p-0">
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                            <div className="text-xs text-muted-foreground space-y-1">
+                              <p>🏷️ Zone: {route.zoneId}</p>
+                              <p>🛣️ Path: {route.pathDetails}</p>
+                              <p>⏱️ Est. Time: {route.estimatedTime}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-4 w-full max-w-4xl">
-        <Button onClick={onCreateRoute} className="flex-1 h-12 text-lg text-white transition-all duration-200 hover:scale-105 bg-green-600 hover:bg-green-700">
-          <Plus className="mr-2 h-4 w-4" /> Create Route
-        </Button>
-        <Button onClick={() => onUpdateRoute()} className="flex-1 h-12 text-lg text-white dark:text-white transition-all duration-200 hover:scale-105 bg-yellow-500 hover:bg-yellow-600">
-          <Edit className="mr-2 h-4 w-4" /> Update Route
-        </Button>
-        <Button onClick={() => onDeleteRoute()} className="flex-1 h-12 text-lg text-white transition-all duration-200 hover:scale-105 bg-red-500 hover:bg-red-700">
-          <Trash2 className="mr-2 h-4 w-4" /> Delete Route
-        </Button>
-      </div>
-
-      {/* Routes Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>All Routes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Route ID</TableHead>
-                  <TableHead>Zone ID</TableHead>
-                  <TableHead>Route Name</TableHead>
-                  <TableHead>Path Details</TableHead>
-                  <TableHead>Avg. Est. Time</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {routes.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      No routes available.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  routes.map((route) => (
-                    <TableRow key={route.id}>
-                      <TableCell>{route.id}</TableCell>
-                      <TableCell>{route.zoneId}</TableCell>
-                      <TableCell>{route.name}</TableCell>
-                      <TableCell>{route.pathDetails}</TableCell>
-                      <TableCell>{route.estimatedTime}</TableCell>
-                      <TableCell className="flex space-x-2">
-                        <Button variant="outline" size="icon" onClick={() => onUpdateRoute(route.id)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="icon" onClick={() => onDeleteRoute(route.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-    </motion.div>
-  </div>
+        </motion.div>
+      </motion.div>
+    </div>
   );
 };
 
 export default RouteManagementDashboard;
-
 
