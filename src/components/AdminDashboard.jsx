@@ -208,6 +208,18 @@ const AdminDashboard = ({ onNavigate }) => {
     { name: 'Assignment', icon: ClipboardList, view: 'assignmentManagement' }, // Assuming a future assignment management
   ];
 
+  // Helper function to get badge variant and color for status
+  const getBadgeVariantAndColor = (status) => {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return { variant: 'default', className: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' };
+      case 'in progress':
+        return { variant: 'default', className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' };
+      default:
+        return { variant: 'default', className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' };
+    }
+  };
+
   let content;
   switch (currentAdminView) {
     case 'workerManagement':
@@ -430,9 +442,9 @@ const AdminDashboard = ({ onNavigate }) => {
                 </CardHeader>
                 <CardContent className="p-3 sm:p-4 lg:p-6 pt-2 sm:pt-3 lg:pt-3 flex-1 flex flex-col">
                   {zoneChartData && logType === 'zone' && (
-                    <div className="flex-1 flex flex-col space-y-2">
+                    <div className="space-y-3 sm:space-y-4">
                       <h3 className="text-sm sm:text-base lg:text-lg font-semibold">Zone {selectedId} Daily Collections & Weight</h3>
-                      <div className="flex-1 w-full overflow-hidden min-h-[200px]">
+                      <div className="w-full overflow-hidden">
                         <Bar
                           data={zoneChartData}
                           options={{
@@ -443,14 +455,15 @@ const AdminDashboard = ({ onNavigate }) => {
                               title: { display: true, text: 'Daily Collections and Weight' }
                             }
                           }}
+                          height={250}
                         />
                       </div>
                     </div>
                   )}
                   {vehicleChartData && logType === 'vehicle' && (
-                    <div className="flex-1 flex flex-col space-y-2">
+                    <div className="space-y-3 sm:space-y-4">
                       <h3 className="text-sm sm:text-base lg:text-lg font-semibold">Vehicle {selectedId} Daily Weight Collected</h3>
-                      <div className="flex-1 w-full overflow-hidden min-h-[200px]">
+                      <div className="w-full overflow-hidden">
                         <Bar
                           data={vehicleChartData}
                           options={{
@@ -461,12 +474,13 @@ const AdminDashboard = ({ onNavigate }) => {
                               title: { display: true, text: 'Daily Weight Collected' }
                             }
                           }}
+                          height={250}
                         />
                       </div>
                     </div>
                   )}
                   {!zoneChartData && !vehicleChartData && (
-                    <div className="flex-1 flex items-center justify-center text-center text-muted-foreground">
+                    <div className="text-center text-muted-foreground py-8 sm:py-12">
                       <p className="text-xs sm:text-sm">Select a report type and generate a report to see the visualization.</p>
                     </div>
                   )}
@@ -509,20 +523,23 @@ const AdminDashboard = ({ onNavigate }) => {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        recentLogs.map((log, index) => (
-                          <TableRow key={index} className="hover:bg-muted/50">
-                            <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap font-medium">{log.zoneId}</TableCell>
-                            <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap hidden sm:table-cell">{log.vehicleId}</TableCell>
-                            <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap hidden md:table-cell">{format(new Date(log.collectionStartTime), 'MMM dd, yyyy, hh:mm a')}</TableCell>
-                            <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap hidden lg:table-cell">{log.collectionEndTime ? format(new Date(log.collectionEndTime), 'MMM dd, yyyy, hh:mm a') : 'N/A'}</TableCell>
-                            <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">{log.weightCollected ?? 'N/A'}</TableCell>
-                            <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">
-                              <Badge variant={log.status === 'Completed' ? 'success' : 'secondary'} className="text-xs">
-                                {log.status}
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))
+                        recentLogs.map((log, index) => {
+                          const badgeProps = getBadgeVariantAndColor(log.status);
+                          return (
+                            <TableRow key={index} className="hover:bg-muted/50">
+                              <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap font-medium">{log.zoneId}</TableCell>
+                              <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap hidden sm:table-cell">{log.vehicleId}</TableCell>
+                              <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap hidden md:table-cell">{format(new Date(log.collectionStartTime), 'MMM dd, yyyy, hh:mm a')}</TableCell>
+                              <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap hidden lg:table-cell">{log.collectionEndTime ? format(new Date(log.collectionEndTime), 'MMM dd, yyyy, hh:mm a') : 'N/A'}</TableCell>
+                              <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">{log.weightCollected ?? 'N/A'}</TableCell>
+                              <TableCell className="text-xs sm:text-sm px-2 sm:px-4 whitespace-nowrap">
+                                <Badge variant={badgeProps.variant} className={`text-xs ${badgeProps.className}`}>
+                                  {log.status}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
                       )}
                     </TableBody>
                   </Table>
@@ -533,30 +550,33 @@ const AdminDashboard = ({ onNavigate }) => {
                   {recentLogs.length > 0 && (
                     <div className="space-y-3">
                       <h3 className="text-sm font-medium text-muted-foreground px-3">Log Details</h3>
-                      {recentLogs.map((log, index) => (
-                        <Card key={`mobile-${index}`} className="mx-3">
-                          <CardContent className="p-3">
-                            <div className="space-y-2">
-                              <div className="flex justify-between items-start">
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-sm">Zone: {log.zoneId}</p>
-                                  <p className="text-xs text-muted-foreground">Vehicle: {log.vehicleId}</p>
+                      {recentLogs.map((log, index) => {
+                        const badgeProps = getBadgeVariantAndColor(log.status);
+                        return (
+                          <Card key={`mobile-${index}`} className="mx-3">
+                            <CardContent className="p-3">
+                              <div className="space-y-2">
+                                <div className="flex justify-between items-start">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-sm">Zone: {log.zoneId}</p>
+                                    <p className="text-xs text-muted-foreground">Vehicle: {log.vehicleId}</p>
+                                  </div>
+                                  <Badge variant={badgeProps.variant} className={`text-xs ml-2 ${badgeProps.className}`}>
+                                    {log.status}
+                                  </Badge>
                                 </div>
-                                <Badge variant={log.status === 'Completed' ? 'success' : 'secondary'} className="text-xs ml-2">
-                                  {log.status}
-                                </Badge>
+                                <div className="text-xs text-muted-foreground space-y-1">
+                                  <p>⚖️ Weight: {log.weightCollected ?? 'N/A'} kg</p>
+                                  <p>🕐 Start: {format(new Date(log.collectionStartTime), 'MMM dd, hh:mm a')}</p>
+                                  {log.collectionEndTime && (
+                                    <p>🕑 End: {format(new Date(log.collectionEndTime), 'MMM dd, hh:mm a')}</p>
+                                  )}
+                                </div>
                               </div>
-                              <div className="text-xs text-muted-foreground space-y-1">
-                                <p>⚖️ Weight: {log.weightCollected ?? 'N/A'} kg</p>
-                                <p>🕐 Start: {format(new Date(log.collectionStartTime), 'MMM dd, hh:mm a')}</p>
-                                {log.collectionEndTime && (
-                                  <p>🕑 End: {format(new Date(log.collectionEndTime), 'MMM dd, hh:mm a')}</p>
-                                )}
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -653,15 +673,25 @@ const AdminDashboard = ({ onNavigate }) => {
           <div className="h-full overflow-y-auto p-2 sm:p-4">
             <nav className="space-y-2">
               {navItems.map((item) => (
-                <Button
-                  key={item.name}
-                  variant="ghost"
-                  className="w-full justify-start text-sm sm:text-lg"
-                  onClick={() => handleNavigation(item.view)}
-                >
-                  <item.icon className={`${isDesktopSidebarCollapsed ? 'mx-auto' : 'mr-2'} h-4 w-4 sm:h-5 sm:w-5`} />
-                  {!isDesktopSidebarCollapsed && item.name}
-                </Button>
+                <div key={item.name} className="relative">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-sm sm:text-lg relative group"
+                    onClick={() => handleNavigation(item.view)}
+                  >
+                    <item.icon className={`${isDesktopSidebarCollapsed ? 'mx-auto' : 'mr-2'} h-4 w-4 sm:h-5 sm:w-5`} />
+                    {!isDesktopSidebarCollapsed && item.name}
+                    
+                    {/* Enhanced Hover Label for Collapsed Sidebar */}
+                    {isDesktopSidebarCollapsed && (
+                      <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-3 px-3 py-2 bg-gray-800 dark:bg-gray-600 text-white text-sm rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none whitespace-nowrap z-[9999] border border-gray-700 dark:border-gray-500">
+                        {item.name}
+                        {/* Arrow pointing to the button */}
+                        <div className="absolute right-full top-1/2 transform -translate-y-1/2 w-0 h-0 border-t-[6px] border-b-[6px] border-r-[8px] border-t-transparent border-b-transparent border-r-gray-800 dark:border-r-gray-600"></div>
+                      </div>
+                    )}
+                  </Button>
+                </div>
               ))}
             </nav>
           </div>
