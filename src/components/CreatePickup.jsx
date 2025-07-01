@@ -352,8 +352,8 @@ const CreatePickup = ({ onBack, onSuccess }) => {
                     </SelectTrigger>
                     <SelectContent>
                       {vehicles.map((vehicle) => (
-                        <SelectItem key={vehicle.id} value={vehicle.id}>
-                          {vehicle.id} - {vehicle.name}
+                        <SelectItem key={vehicle.id} value={vehicle.registrationNumber}>
+                          {vehicle.id}: {vehicle.registrationNumber}
                         </SelectItem>
                       ))}
                     </SelectContent>
