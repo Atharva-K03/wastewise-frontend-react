@@ -9,6 +9,7 @@ import UpdatePickup from './components/UpdatePickup';
 import DeletePickup from './components/DeletePickup';
 
 import AdminDashboard from './components/AdminDashboard';
+import WorkerDashboard from './components/WorkerDashboard';
 
 import { Toaster } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -116,11 +117,7 @@ function App() {
         break;
     }
   } else if (user.role === 'Worker') {
-    content = (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-black-50 dark:from-gray-950 dark:to-gray-800">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Hello, Worker! Your dashboard is coming soon.</h2>
-      </div>
-    );
+    content = <WorkerDashboard />;
     pageKey = 'workerDashboard';
   }
 

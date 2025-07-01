@@ -24,12 +24,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { 
-  Plus, 
-  Trash2, 
-  LogOut, 
-  Moon, 
-  Sun, 
+import {
+  Plus,
+  Trash2,
+  LogOut,
+  Moon,
+  Sun,
   Calendar,
   MapPin,
   Clock,
@@ -114,11 +114,10 @@ const Dashboard = ({ onCreatePickup, onDeletePickup, onUpdatePickup }) => {
                 variant="outline"
                 size="icon"
                 onClick={toggleTheme}
-                className="transition-all duration-200 hover:scale-105 text-gray-800 dark:text-white rounded-full h-8 w-8"
-              >
+                className="transition-all duration-200 hover:scale-105 bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 rounded-full h-8 w-8">
                 {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
               </Button>
-              
+
               <div className="flex items-center space-x-2">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400">
@@ -134,9 +133,9 @@ const Dashboard = ({ onCreatePickup, onDeletePickup, onUpdatePickup }) => {
                 variant="outline"
                 size="sm"
                 onClick={logout}
-                className="transition-all duration-200 hover:scale-105 text-gray-800 dark:text-white h-8 w-8"
+                className="transition-all duration-200 hover:scale-105 bg-green-100 dark:bg-green-900 text-green-600 dark:text-white-400 rounded-full h-8 w-8"
               >
-                <LogOut className="h-4 w-4 mr-2" />
+                <LogOut className="h-4 w-4" />
               </Button>
             </div>
           </div>
