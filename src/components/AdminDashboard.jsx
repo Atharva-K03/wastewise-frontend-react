@@ -428,8 +428,6 @@ const AdminDashboard = ({ onNavigate }) => {
             </motion.div>
           </div>
 
-
-
           {/* Recent Logs Table */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -523,9 +521,9 @@ const AdminDashboard = ({ onNavigate }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-black-50 dark:from-gray-950 dark:to-gray-800">
+    <div className="h-screen bg-gradient-to-br from-gray-50 to-black-50 dark:from-gray-950 dark:to-gray-800 flex flex-col">
       {/* Header */}
-      <header className="bg-green-600 dark:bg-green-800 text-white sticky top-0 z-40 shadow-md">
+      <header className="bg-green-600 dark:bg-green-800 text-white sticky top-0 z-40 shadow-md flex-shrink-0">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
           <div className="flex justify-between items-center h-14 sm:h-16">
             <div className="flex items-center space-x-2">
@@ -602,27 +600,31 @@ const AdminDashboard = ({ onNavigate }) => {
         </div>
       </header>
 
-      <div className="flex">
-        {/* Desktop Sidebar */}
-        <aside className={`hidden lg:block ${isDesktopSidebarCollapsed ? 'w-16 sm:w-20' : 'w-48 sm:w-64'} bg-gray-100 dark:bg-gray-900 p-2 sm:p-4 shadow-lg min-h-[calc(100vh-56px)] sm:min-h-[calc(100vh-64px)] transition-all duration-300 ease-in-out`}>
-          <nav className="space-y-2">
-            {navItems.map((item) => (
-              <Button
-                key={item.name}
-                variant="ghost"
-                className="w-full justify-start text-sm sm:text-lg"
-                onClick={() => handleNavigation(item.view)}
-              >
-                <item.icon className={`${isDesktopSidebarCollapsed ? 'mx-auto' : 'mr-2'} h-4 w-4 sm:h-5 sm:w-5`} />
-                {!isDesktopSidebarCollapsed && item.name}
-              </Button>
-            ))}
-          </nav>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Desktop Sidebar - Fixed */}
+        <aside className={`hidden lg:block ${isDesktopSidebarCollapsed ? 'w-16 sm:w-20' : 'w-48 sm:w-64'} bg-gray-100 dark:bg-gray-900 shadow-lg transition-all duration-300 ease-in-out flex-shrink-0`}>
+          <div className="h-full overflow-y-auto p-2 sm:p-4">
+            <nav className="space-y-2">
+              {navItems.map((item) => (
+                <Button
+                  key={item.name}
+                  variant="ghost"
+                  className="w-full justify-start text-sm sm:text-lg"
+                  onClick={() => handleNavigation(item.view)}
+                >
+                  <item.icon className={`${isDesktopSidebarCollapsed ? 'mx-auto' : 'mr-2'} h-4 w-4 sm:h-5 sm:w-5`} />
+                  {!isDesktopSidebarCollapsed && item.name}
+                </Button>
+              ))}
+            </nav>
+          </div>
         </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 p-2 sm:p-4 lg:p-8 max-w-full overflow-hidden">
-          {content}
+        {/* Main Content - Scrollable */}
+        <main className="flex-1 overflow-y-auto">
+          <div className="p-2 sm:p-4 lg:p-8">
+            {content}
+          </div>
         </main>
       </div>
     </div>
