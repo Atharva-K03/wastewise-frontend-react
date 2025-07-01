@@ -94,7 +94,7 @@ const DeleteZone = ({ onBack, onSuccess, initialZoneId = null }) => {
         <CardContent>
           <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
             <div>
-              <Label htmlFor="zoneId">Zone ID</Label>
+              <Label htmlFor="zoneId" className="h-7">Zone ID</Label>
               <Select
                 value={selectedZoneId}
                 onValueChange={setSelectedZoneId}

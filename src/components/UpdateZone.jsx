@@ -94,7 +94,7 @@ const UpdateZone = ({ onBack, onSuccess, initialZoneId = null }) => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="zoneId">Zone ID</Label>
+              <Label htmlFor="zoneId" className="h-7">Zone ID</Label>
               <Select
                 value={selectedZoneId}
                 onValueChange={setSelectedZoneId}
@@ -117,7 +117,7 @@ const UpdateZone = ({ onBack, onSuccess, initialZoneId = null }) => {
               </Select>
             </div>
             <div>
-              <Label htmlFor="zoneName">Zone Name</Label>
+              <Label htmlFor="zoneName" className="h-7">Zone Name</Label>
               <Input
                 id="zoneName"
                 type="text"
@@ -129,7 +129,7 @@ const UpdateZone = ({ onBack, onSuccess, initialZoneId = null }) => {
               />
             </div>
             <div>
-              <Label htmlFor="areaCoverage">Area Coverage</Label>
+              <Label htmlFor="areaCoverage" className="h-7">Area Coverage</Label>
               <Input
                 id="areaCoverage"
                 type="text"
