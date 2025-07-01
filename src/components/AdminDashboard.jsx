@@ -27,6 +27,11 @@ import CreateZone from './CreateZone';
 import UpdateZone from './UpdateZone';
 import DeleteZone from './DeleteZone';
 
+import RouteManagementDashboard from './RouteManagementDashboard';
+import CreateRoute from './CreateRoute';
+import UpdateRoute from './UpdateRoute';
+import DeleteRoute from './DeleteRoute';
+
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const AdminDashboard = ({ onNavigate }) => {
@@ -35,9 +40,11 @@ const AdminDashboard = ({ onNavigate }) => {
   const { logs, zones, vehicles, getWeeklySummary, getMonthlySummary, getZoneDailyCollections, getVehicleDailyWeight } = usePickup();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isDesktopSidebarCollapsed, setIsDesktopSidebarCollapsed] = useState(false);
-  const [currentAdminView, setCurrentAdminView] = useState('adminDashboard'); // 'adminDashboard', 'workerManagement', 'createWorker', 'updateWorker', 'zoneManagement', 'createZone', 'updateZone', 'deleteZone'
+  const [currentAdminView, setCurrentAdminView] = useState('adminDashboard'); // 'adminDashboard', 'workerManagement', 'createWorker', 'updateWorker', 'zoneManagement', 'createZone', 'updateZone', 'deleteZone', 'routeManagement', 'createRoute', 'updateRoute', 'deleteRoute'
   const [zoneToUpdateId, setZoneToUpdateId] = useState(null); // For updating a specific zone from table
   const [zoneToDeleteId, setZoneToDeleteId] = useState(null); // For deleting a specific zone from table
+  const [routeToUpdateId, setRouteToUpdateId] = useState(null); // For updating a specific route from table
+  const [routeToDeleteId, setRouteToDeleteId] = useState(null); // For deleting a specific route from table
 
   // Log Report States
   const [logType, setLogType] = useState('zone'); // 'zone' or 'vehicle'
@@ -52,6 +59,8 @@ const AdminDashboard = ({ onNavigate }) => {
     setIsMobileSidebarOpen(false); // Close mobile sidebar after navigation
     setZoneToUpdateId(null); // Clear any specific zone ID for update
     setZoneToDeleteId(null); // Clear any specific zone ID for delete
+    setRouteToUpdateId(null); // Clear any specific route ID for update
+    setRouteToDeleteId(null); // Clear any specific route ID for delete
     // Reset log report states when navigating away from adminDashboard
     if (module !== 'adminDashboard') {
       setSelectedId('');
@@ -92,6 +101,25 @@ const AdminDashboard = ({ onNavigate }) => {
 
   const handleZoneSuccess = () => {
     setCurrentAdminView('zoneManagement');
+  };
+
+  // Route Management Handlers
+  const handleCreateRoute = () => {
+    setCurrentAdminView('createRoute');
+  };
+
+  const handleUpdateRoute = (routeId = null) => {
+    setRouteToUpdateId(routeId);
+    setCurrentAdminView('updateRoute');
+  };
+
+  const handleDeleteRoute = (routeId = null) => {
+    setRouteToDeleteId(routeId);
+    setCurrentAdminView('deleteRoute');
+  };
+
+  const handleRouteSuccess = () => {
+    setCurrentAdminView('routeManagement');
   };
 
   // Log Report Handlers
@@ -143,6 +171,15 @@ const AdminDashboard = ({ onNavigate }) => {
     return [...logs].sort((a, b) => new Date(b.collectionStartTime) - new Date(a.collectionStartTime)).slice(0, 10);
   }, [logs]);
 
+  const navItems = [
+    { name: 'Dashboard', icon: LayoutDashboard, view: 'adminDashboard' },
+    { name: 'Worker', icon: Users, view: 'workerManagement' },
+    { name: 'Zone', icon: MapPin, view: 'zoneManagement' },
+    { name: 'Route', icon: Route, view: 'routeManagement' },
+    { name: 'Vehicle', icon: Truck, view: 'vehicleManagement' }, // Assuming a future vehicle management
+    { name: 'Assignment', icon: ClipboardList, view: 'assignmentManagement' }, // Assuming a future assignment management
+  ];
+
   let content;
   switch (currentAdminView) {
     case 'workerManagement':
@@ -176,6 +213,24 @@ const AdminDashboard = ({ onNavigate }) => {
       break;
     case 'deleteZone':
       content = <DeleteZone onBack={() => setCurrentAdminView('zoneManagement')} onSuccess={handleZoneSuccess} initialZoneId={zoneToDeleteId} />;
+      break;
+    case 'routeManagement':
+      content = (
+        <RouteManagementDashboard
+          onCreateRoute={handleCreateRoute}
+          onUpdateRoute={handleUpdateRoute}
+          onDeleteRoute={handleDeleteRoute}
+        />
+      );
+      break;
+    case 'createRoute':
+      content = <CreateRoute onBack={() => setCurrentAdminView('routeManagement')} onSuccess={handleRouteSuccess} />;
+      break;
+    case 'updateRoute':
+      content = <UpdateRoute onBack={() => setCurrentAdminView('routeManagement')} onSuccess={handleRouteSuccess} initialRouteId={routeToUpdateId} />;
+      break;
+    case 'deleteRoute':
+      content = <DeleteRoute onBack={() => setCurrentAdminView('routeManagement')} onSuccess={handleRouteSuccess} initialRouteId={routeToDeleteId} />;
       break;
     case 'adminDashboard':
     default:
@@ -307,8 +362,8 @@ const AdminDashboard = ({ onNavigate }) => {
                   </div>
                 )}
                 {!zoneChartData && !vehicleChartData && (
-                  <div className="text-center text-muted-foreground py-10">
-                    Select criteria and generate a report to see the graph.
+                  <div className="text-center text-muted-foreground py-12">
+                    <p>Select a report type and generate a report to see the visualization.</p>
                   </div>
                 )}
               </CardContent>
@@ -330,8 +385,8 @@ const AdminDashboard = ({ onNavigate }) => {
                     <TableRow>
                       <TableHead>Zone ID</TableHead>
                       <TableHead>Vehicle ID</TableHead>
-                      <TableHead>Collection Start</TableHead>
-                      <TableHead>Collection End</TableHead>
+                      <TableHead>Start Time</TableHead>
+                      <TableHead>End Time</TableHead>
                       <TableHead>Weight (kg)</TableHead>
                       <TableHead>Status</TableHead>
                     </TableRow>
@@ -348,9 +403,9 @@ const AdminDashboard = ({ onNavigate }) => {
                         <TableRow key={index}>
                           <TableCell>{log.zoneId}</TableCell>
                           <TableCell>{log.vehicleId}</TableCell>
-                          <TableCell>{format(new Date(log.collectionStartTime), 'MMM dd, yyyy HH:mm')}</TableCell>
-                          <TableCell>{log.collectionEndTime ? format(new Date(log.collectionEndTime), 'MMM dd, yyyy HH:mm') : 'In Progress'}</TableCell>
-                          <TableCell>{log.weightCollected !== null ? `${log.weightCollected} kg` : 'N/A'}</TableCell>
+                          <TableCell>{format(new Date(log.collectionStartTime), 'MMM dd, yyyy, hh:mm a')}</TableCell>
+                          <TableCell>{log.collectionEndTime ? format(new Date(log.collectionEndTime), 'MMM dd, yyyy, hh:mm a') : 'N/A'}</TableCell>
+                          <TableCell>{log.weightCollected ?? 'N/A'}</TableCell>
                           <TableCell>
                             <Badge variant={log.status === 'Completed' ? 'success' : 'secondary'}>
                               {log.status}
@@ -366,17 +421,7 @@ const AdminDashboard = ({ onNavigate }) => {
           </Card>
         </motion.div>
       );
-      break;
   }
-
-  const navItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, view: 'adminDashboard' },
-    { name: 'Worker', icon: Users, view: 'workerManagement' },
-    { name: 'Zone', icon: MapPin, view: 'zoneManagement' },
-    { name: 'Route', icon: Route, view: 'routeManagement' },
-    { name: 'Vehicle', icon: Truck, view: 'vehicleManagement' },
-    { name: 'Assignment', icon: ClipboardList, view: 'assignmentManagement' },
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-black-50 dark:from-gray-950 dark:to-gray-800">
@@ -385,15 +430,14 @@ const AdminDashboard = ({ onNavigate }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-2">
-              {/* Hamburger menu for mobile and desktop sidebar toggle */}
+              {/* Hamburger Menu for Mobile */}
               <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="lg:hidden text-white">
+                <SheetTrigger asChild className="lg:hidden">
+                  <Button variant="primary" size="icon">
                     <Menu className="h-6 w-6" />
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-64 bg-gray-100 dark:bg-gray-900 p-4">
-                  <h2 className="text-2xl font-bold mb-6 text-green-600 dark:text-green-400">Admin Menu</h2>
                   <nav className="space-y-2">
                     {navItems.map((item) => (
                       <Button
@@ -408,10 +452,10 @@ const AdminDashboard = ({ onNavigate }) => {
                   </nav>
                 </SheetContent>
               </Sheet>
-              
-              {/* Desktop sidebar toggle button */}
+
+              {/* Hamburger Menu for Desktop */}
               <Button
-                variant="ghost"
+                variant="primary"
                 size="icon"
                 onClick={() => setIsDesktopSidebarCollapsed(!isDesktopSidebarCollapsed)}
                 className="hidden lg:block text-white"
@@ -419,10 +463,10 @@ const AdminDashboard = ({ onNavigate }) => {
                 <Menu className="h-6 w-6" />
               </Button>
 
-              <h1 className="text-2xl lg:text-3xl font-bold flex items-center space-x-2">
+              <div className="text-2xl lg:text-3xl font-bold flex items-center space-x-2">
                 <Leaf className="h-6 w-6 text-white" />
-                <span>WasteWise</span>
-              </h1>
+                <span className="text-2xl font-bold text-white-800 dark:text-white">WasteWise</span>
+              </div>
             </div>
 
             <div className="flex items-center space-x-4">
@@ -430,11 +474,11 @@ const AdminDashboard = ({ onNavigate }) => {
                 variant="outline"
                 size="icon"
                 onClick={toggleTheme}
-                className="transition-all duration-200 hover:scale-105 text-gray-800 dark:text-white rounded-full h-8 w-8"
+                className="transition-all duration-200 hover:scale-105 bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 rounded-full h-8 w-8"
               >
                 {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
               </Button>
-              
+
               <div className="flex items-center space-x-2">
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400">
@@ -442,7 +486,7 @@ const AdminDashboard = ({ onNavigate }) => {
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden sm:block">
-                  <p className="text-sm font-medium">{user?.name}</p>
+                  {/* <p className="text-sm font-medium">{user?.name}</p> */}
                   <Badge variant="secondary" className="bg-green-700 text-white/80">{user?.role}</Badge>
                 </div>
               </div>
@@ -451,9 +495,9 @@ const AdminDashboard = ({ onNavigate }) => {
                 variant="outline"
                 size="sm"
                 onClick={logout}
-                className="transition-all duration-200 hover:scale-105 text-gray-800 dark:text-white h-8 w-8"
+                className="transition-all duration-200 hover:scale-105 bg-green-100 dark:bg-green-900 text-green-600 dark:text-white-400 rounded-full h-8 w-8"
               >
-                <LogOut className="h-4 w-4 mr-2" />
+                <LogOut className="h-4 w-4" />
               </Button>
             </div>
           </div>

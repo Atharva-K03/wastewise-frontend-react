@@ -21,6 +21,8 @@ export const PickupProvider = ({ children }) => {
   const [routes, setRoutes] = useState([]); // Manage routes state here
   const [nextRouteId, setNextRouteId] = useState(1); // Start from R001
   const [logs, setLogs] = useState([]); // Manage logs state here
+  const [assignments, setAssignments] = useState([]); // Manage assignments state here
+  const [nextAssignmentId, setNextAssignmentId] = useState(1); // Start from A001
 
   // Dummy data for vehicles (already present)
   const vehicles = [
@@ -89,9 +91,9 @@ export const PickupProvider = ({ children }) => {
 
     // Load initial dummy data for routes
     const initialRoutes = [
-      { id: 'R001', zoneId: 'Z001', name: 'Route 1 - Downtown', description: 'Covers main commercial streets' },
-      { id: 'R002', zoneId: 'Z001', name: 'Route 2 - Financial District', description: 'Covers financial area' },
-      { id: 'R003', zoneId: 'Z002', name: 'Route 1 - North Residential', description: 'Covers northern residential blocks' },
+      { id: 'Z001-R001', zoneId: 'Z001', name: 'Route 1 - Downtown', pathDetails: 'Main St, Elm St, Oak Ave', estimatedTime: '2 hours' },
+      { id: 'Z001-R002', zoneId: 'Z001', name: 'Route 2 - Financial District', pathDetails: 'Wall St, Broad St', estimatedTime: '1 hour 30 minutes' },
+      { id: 'Z002-R001', zoneId: 'Z002', name: 'Route 1 - North Residential', pathDetails: 'Maple Ave, Pine Ln, Cedar Rd', estimatedTime: '3 hours' },
     ];
     setRoutes(initialRoutes);
     setNextRouteId(initialRoutes.length + 1);
@@ -112,6 +114,15 @@ export const PickupProvider = ({ children }) => {
       { zoneId: 'Z002', vehicleId: 'V002', collectionStartTime: '2025-06-30T11:00:00Z', collectionEndTime: '2025-06-30T11:30:00Z', weightCollected: 175, status: 'Completed' },
     ];
     setLogs(initialLogs);
+
+    // Dummy data for assignments
+    const initialAssignments = [
+      { id: 'A001', routeId: 'Z001-R001', assignedTo: 'W004', status: 'Pending' },
+      { id: 'A002', routeId: 'Z001-R001', assignedTo: 'W005', status: 'Completed' },
+      { id: 'A003', routeId: 'Z002-R001', assignedTo: 'W006', status: 'InProgress' },
+    ];
+    setAssignments(initialAssignments);
+    setNextAssignmentId(initialAssignments.length + 1);
 
   }, []);
 
@@ -187,16 +198,23 @@ export const PickupProvider = ({ children }) => {
   };
 
   const deleteZone = (zoneId) => {
+    // Check if any routes are assigned to this zone
+    const routesAssigned = routes.filter(route => route.zoneId === zoneId);
+    if (routesAssigned.length > 0) {
+      return { success: false, message: 'Cannot delete zone. Routes are assigned to this zone.', assignedRoutes: routesAssigned };
+    }
     setZones(prev => prev.filter(zone => zone.id !== zoneId));
+    return { success: true, message: 'Zone deleted successfully.' };
   };
 
   const createRoute = (routeData) => {
+    const newRouteIdNum = routes.filter(r => r.zoneId === routeData.zoneId).length + 1;
     const newRoute = {
       ...routeData,
-      id: `R${String(nextRouteId).padStart(3, '0')}`,
+      id: `${routeData.zoneId}-R${String(newRouteIdNum).padStart(3, '0')}`,
     };
     setRoutes(prev => [...prev, newRoute]);
-    setNextRouteId(prev => prev + 1);
+    // No need to increment nextRouteId global counter as it's per zone
     return newRoute;
   };
 
@@ -211,7 +229,37 @@ export const PickupProvider = ({ children }) => {
   };
 
   const deleteRoute = (routeId) => {
+    // Check if any assignments are linked to this route
+    const assignmentsLinked = assignments.filter(assignment => assignment.routeId === routeId);
+    if (assignmentsLinked.length > 0) {
+      return { success: false, message: 'Cannot delete route. Assignments are linked to this route.', assignedAssignments: assignmentsLinked };
+    }
     setRoutes(prev => prev.filter(route => route.id !== routeId));
+    return { success: true, message: 'Route deleted successfully.' };
+  };
+
+  const createAssignment = (assignmentData) => {
+    const newAssignment = {
+      ...assignmentData,
+      id: `A${String(nextAssignmentId).padStart(3, '0')}`,
+    };
+    setAssignments(prev => [...prev, newAssignment]);
+    setNextAssignmentId(prev => prev + 1);
+    return newAssignment;
+  };
+
+  const updateAssignment = (assignmentId, updatedData) => {
+    setAssignments(prev =>
+      prev.map(assignment =>
+        assignment.id === assignmentId
+          ? { ...assignment, ...updatedData }
+          : assignment
+      )
+    );
+  };
+
+  const deleteAssignment = (assignmentId) => {
+    setAssignments(prev => prev.filter(assignment => assignment.id !== assignmentId));
   };
 
   const getZoneName = (zoneId) => {
@@ -231,6 +279,10 @@ export const PickupProvider = ({ children }) => {
 
   const getRoutesByZoneId = (zoneId) => {
     return routes.filter(route => route.zoneId === zoneId);
+  };
+
+  const getAssignmentsByRouteId = (routeId) => {
+    return assignments.filter(assignment => assignment.routeId === routeId);
   };
 
   const getLogs = (type, id, startDate, endDate) => {
@@ -346,6 +398,7 @@ export const PickupProvider = ({ children }) => {
     workers,
     routes,
     logs,
+    assignments,
     createPickup,
     deletePickup,
     updatePickup,
@@ -358,10 +411,14 @@ export const PickupProvider = ({ children }) => {
     createRoute,
     updateRoute,
     deleteRoute,
+    createAssignment,
+    updateAssignment,
+    deleteAssignment,
     getZoneName,
     getVehicleName,
     getWorkerName,
     getRoutesByZoneId,
+    getAssignmentsByRouteId,
     getLogs,
     getWeeklySummary,
     getMonthlySummary,

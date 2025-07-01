@@ -48,6 +48,7 @@ const RouteManagementDashboard = ({ onCreateRoute, onUpdateRoute, onDeleteRoute 
   ];
 
   return (
+    <div className="p-4">
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -76,14 +77,14 @@ const RouteManagementDashboard = ({ onCreateRoute, onUpdateRoute, onDeleteRoute 
       </div>
 
       {/* Action Buttons */}
-      <div className="flex space-x-4 justify-center">
-        <Button onClick={onCreateRoute} className="bg-blue-600 hover:bg-blue-700 text-white">
+      <div className="flex flex-col sm:flex-row gap-4 w-full max-w-4xl">
+        <Button onClick={onCreateRoute} className="flex-1 h-12 text-lg text-white transition-all duration-200 hover:scale-105 bg-green-600 hover:bg-green-700">
           <Plus className="mr-2 h-4 w-4" /> Create Route
         </Button>
-        <Button onClick={() => onUpdateRoute()} className="bg-yellow-600 hover:bg-yellow-700 text-white">
+        <Button onClick={() => onUpdateRoute()} className="flex-1 h-12 text-lg text-white dark:text-white transition-all duration-200 hover:scale-105 bg-yellow-500 hover:bg-yellow-600">
           <Edit className="mr-2 h-4 w-4" /> Update Route
         </Button>
-        <Button onClick={() => onDeleteRoute()} className="bg-red-600 hover:bg-red-700 text-white">
+        <Button onClick={() => onDeleteRoute()} className="flex-1 h-12 text-lg text-white transition-all duration-200 hover:scale-105 bg-red-500 hover:bg-red-700">
           <Trash2 className="mr-2 h-4 w-4" /> Delete Route
         </Button>
       </div>
@@ -138,6 +139,7 @@ const RouteManagementDashboard = ({ onCreateRoute, onUpdateRoute, onDeleteRoute 
         </CardContent>
       </Card>
     </motion.div>
+  </div>
   );
 };
 
