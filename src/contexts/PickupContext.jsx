@@ -20,18 +20,13 @@ export const PickupProvider = ({ children }) => {
   const [nextZoneId, setNextZoneId] = useState(1); // Start from Z001
   const [routes, setRoutes] = useState([]); // Manage routes state here
   const [nextRouteId, setNextRouteId] = useState(1); // Start from R001
+  const [vehicles, setVehicles] = useState([]); // Manage vehicles state here
+  const [nextVehicleId, setNextVehicleId] = useState({ route: 1, pickup: 1 }); // Start from RT001, PT001
   const [logs, setLogs] = useState([]); // Manage logs state here
   const [assignments, setAssignments] = useState([]); // Manage assignments state here
   const [nextAssignmentId, setNextAssignmentId] = useState(1); // Start from A001
 
-  // Dummy data for vehicles (already present)
-  const vehicles = [
-    { id: 'V001', name: 'Truck Alpha' },
-    { id: 'V002', name: 'Truck Beta' },
-    { id: 'V003', name: 'Truck Gamma' },
-    { id: 'V004', name: 'Truck Delta' },
-    { id: 'V005', name: 'Truck Echo' }
-  ];
+  // Dummy data for vehicles (removed - will be managed in state)
 
   useEffect(() => {
     // Load initial dummy data for pickups
@@ -97,6 +92,16 @@ export const PickupProvider = ({ children }) => {
     ];
     setRoutes(initialRoutes);
     setNextRouteId(initialRoutes.length + 1);
+
+    // Load initial dummy data for vehicles
+    const initialVehicles = [
+      { id: 'RT001', type: 'route truck', registrationNumber: 'ABC-1234', status: 'available' },
+      { id: 'RT002', type: 'route truck', registrationNumber: 'DEF-5678', status: 'under maintenance' },
+      { id: 'PT001', type: 'pickup truck', registrationNumber: 'GHI-9012', status: 'available' },
+      { id: 'PT002', type: 'pickup truck', registrationNumber: 'JKL-3456', status: 'unavailable' },
+    ];
+    setVehicles(initialVehicles);
+    setNextVehicleId({ route: 3, pickup: 3 });
 
     // Load initial dummy data for logs
     const initialLogs = [
@@ -262,6 +267,53 @@ export const PickupProvider = ({ children }) => {
     setAssignments(prev => prev.filter(assignment => assignment.id !== assignmentId));
   };
 
+  // Vehicle Management Functions
+  const createVehicle = (vehicleData) => {
+    const isRouteType = vehicleData.type === 'route truck';
+    const prefix = isRouteType ? 'RT' : 'PT';
+    const currentId = isRouteType ? nextVehicleId.route : nextVehicleId.pickup;
+    
+    const newVehicle = {
+      ...vehicleData,
+      id: `${prefix}${String(currentId).padStart(3, '0')}`,
+    };
+    
+    setVehicles(prev => [...prev, newVehicle]);
+    setNextVehicleId(prev => ({
+      ...prev,
+      [isRouteType ? 'route' : 'pickup']: currentId + 1
+    }));
+    
+    return newVehicle;
+  };
+
+  const updateVehicle = (vehicleId, updatedData) => {
+    const updatedVehicle = vehicles.find(v => v.id === vehicleId);
+    if (updatedVehicle) {
+      const newVehicle = { ...updatedVehicle, ...updatedData };
+      setVehicles(prev =>
+        prev.map(vehicle =>
+          vehicle.id === vehicleId ? newVehicle : vehicle
+        )
+      );
+      return newVehicle;
+    }
+    return null;
+  };
+
+  const deleteVehicle = (vehicleId) => {
+    const vehicleToDelete = vehicles.find(v => v.id === vehicleId);
+    if (vehicleToDelete) {
+      setVehicles(prev => prev.filter(vehicle => vehicle.id !== vehicleId));
+      return vehicleToDelete;
+    }
+    return null;
+  };
+
+  const getVehicleById = (vehicleId) => {
+    return vehicles.find(vehicle => vehicle.id === vehicleId) || null;
+  };
+
   const getZoneName = (zoneId) => {
     const zone = zones.find(z => z.id === zoneId);
     return zone ? zone.name : 'Unknown Zone';
@@ -414,6 +466,10 @@ export const PickupProvider = ({ children }) => {
     createAssignment,
     updateAssignment,
     deleteAssignment,
+    createVehicle,
+    updateVehicle,
+    deleteVehicle,
+    getVehicleById,
     getZoneName,
     getVehicleName,
     getWorkerName,
